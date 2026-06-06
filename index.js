@@ -12,9 +12,15 @@ const io = new Server(server);
 
 io.on('connection', (socket) => {
   console.log('a user connected');
+  socket.on("chat message", (msg) => {
+    console.log('message' + msg)
+  })
+  socket.on("user typing",()=>{
+    console.log("user is typing ")
+  })
   socket.on('disconnect', () => {
   console.log('a user disconnected');
-})
+  })
 });
 
 

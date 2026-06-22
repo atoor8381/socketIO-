@@ -8,12 +8,14 @@ import { Server } from 'socket.io';
 const app = express();
 const server = createServer(app);
 
-const io = new Server(server);
+const io = new Server(server, {
+  connectionStateRecovery: {}
+});
 
 io.on('connection', (socket) => {
   console.log('a user connected');
   socket.on("chat message", (msg) => {
-    socket.broadcast.emit("chat message", msg)
+    io.emit("chat message", msg)
     console.log('message ' + msg)
   })
   socket.on("user typing",()=>{

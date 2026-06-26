@@ -39,7 +39,7 @@ io.on('connection',async (socket) => {
       console.log(error)
     }
   }
-  socket.on("chat message", async (msg) => {
+  socket.on("chat message", async (msg, callback) => {
     let result;
     try {
       result = await db.run(`INSERT INTO messages(content) VALUES(?)`, msg)
@@ -49,6 +49,7 @@ io.on('connection',async (socket) => {
     }
     io.emit("chat message", msg, result.lastID)
     console.log('message ' + msg, result.lastID)
+  callback()
   })
   socket.on("user typing", () => {
     console.log("user is typing ")

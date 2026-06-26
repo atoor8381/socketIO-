@@ -39,13 +39,16 @@ io.on('connection',async (socket) => {
       console.log(error)
     }
   }
-  socket.on("chat message", async (msg, callback) => {
+  socket.on("chat message", async (msg, callback, clientoffset) => {
     let result;
     try {
-      result = await db.run(`INSERT INTO messages(content) VALUES(?)`, msg)
+      result = await db.run(`INSERT INTO messages(content, client_offset) VALUES(?, ?)`, msg, clientoffset)
     }
     catch (err) {
-      console.log(err)
+      if(err.errno=19){
+        callback()
+      }
+      return;
     }
     io.emit("chat message", msg, result.lastID)
     console.log('message ' + msg, result.lastID)

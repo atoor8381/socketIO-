@@ -73,7 +73,7 @@
 <script>
   const socket = io({
     auth : { 
-      socketOffset : 0 
+      serverOffset : 0 
     },
   ackTimeout: 10000,
   retries: 3
@@ -105,12 +105,12 @@
       socket.connect();
     }
   });
-  socket.on('chat message', (msg, socketOffset) => {
+  socket.on('chat message', (msg, serverOffset) => {
     const item = document.createElement('li');
     item.textContent = msg;
     messages.appendChild(item);
     window.scrollTo(0, document.body.scrollHeight);
-    socket.auth.socketOffset = socketOffset
+    socket.auth.serverOffset = serverOffset
   });
 </script>
 

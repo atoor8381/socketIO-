@@ -76,23 +76,19 @@
     auth : { 
       serverOffset : 0 
     },
-  ackTimeout: 10000,
+  ackTimeout: 100000,
   retries: 3
   })
   const form = document.getElementById('form')
   const input = document.getElementById('input')
   const messages = document.getElementById('messages');
 
-  input.addEventListener('input', () => {
-    socket.emit("user typing")
-  })
   form.addEventListener('submit', (e) => {
-    console.log("hello")
     e.preventDefault()
     if (input.value) {
-      const clientOffset = `${socket.id}-${counter++} `
+      const clientOffset = `${socket.id}-${counter++}`
       socket.emit("chat message", input.value, clientOffset)
-      input.value = ' '
+      input.value = ''
     }
   })
   const toggleButton = document.getElementById('toggle-btn');

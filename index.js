@@ -21,7 +21,6 @@ if(cluster.isPrimary){
   setupPrimary();
 }
 else {
-  // here we are using await bcz the open returns a promise and we need to wait for it to resolve before we can use the db object.
   const db = await open({
     filename: 'chat.db',
     driver: sqlite3.Database
@@ -35,35 +34,36 @@ else {
   );`
   )
 
-
   const app = express();
   const server = createServer(app);
 
   const io = new Server(server, {
     connectionStateRecovery: {},
     adapter: createAdapter()
-
   });
 
   io.on('connection', async (socket) => {
     console.log('a user connected');
     if (!socket.recovered) {
       try {
-        await db.each('SELECT id, content FROM messages WHERE id>?', [socket.handshake.auth.socketOffset || 0], (_err, row) => {
+        await db.each('SELECT id, content FROM messages WHERE id>?', [socket.handshake.auth.serverOffset || 0], (_err, row) => {
           socket.emit("chat message", row.content, row.id)
         })
       } catch (error) {
         console.log(error)
       }
     }
-    socket.on("chat message", async (msg, callback, clientoffset) => {
+    socket.on("chat message", async (msg, clientOffset, callback) => {
       let result;
       try {
-        result = await db.run(`INSERT INTO messages(content, client_offset) VALUES(?, ?)`, msg, clientoffset)
+        result = await db.run(`INSERT INTO messages(content, client_offset) VALUES(?, ?)`, msg, clientOffset)
       }
       catch (err) {
-        if (err.errno = 19) {
+        if (err.errno === 19) {
           callback()
+          console.log('duplicate message, ignoring')
+        } else {
+          // nothing to do, let client retry
         }
         return;
       }
@@ -71,14 +71,10 @@ else {
       console.log('message ' + msg, result.lastID)
       callback()
     })
-    socket.on("user typing", () => {
-      console.log("user is typing ")
-    })
     socket.on('disconnect', () => {
       console.log('a user disconnected');
     })
   });
-
 
   let __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -92,5 +88,3 @@ else {
     console.log('server running at http://localhost:' + port);
   });
 }
-// Express creates an HTTP server but doesn't give us enough control to use Socket.io. Thast's why we use both http and the express. 
-
